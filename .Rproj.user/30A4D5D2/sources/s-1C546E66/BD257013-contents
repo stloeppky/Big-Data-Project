@@ -1,0 +1,79 @@
+# Code Library
+
+# Imported Libraries 
+library(ggplot2)
+library(readr)
+
+# Example data sets:
+anolis.data.set <- read_csv("anolis.csv") # For "grep" command
+convict.data.set <- data.frame(num.convictions = rep(c(0:14),c(265,49,21,19,10,10,2,2,4,2,1,4,3,1,2))) # For Histogram
+sbt <- read_csv("squirrel.body.temp.csv") # for tapply
+
+#-------------------------------------------------------
+
+# grep Command
+# grep searches for matches to an argument pattern within each element of a character vector.
+# There are many different versions of the grep command that vary in format and amount of detail returned. 
+?grep
+
+# Example:
+Cuba <- subset(anolis.data.set,
+               grepl("Cuba", anolis.data.set$Island))
+# This code returns all the entries inlcuding "Cuba" within the Island column of the data set, 
+# and stores them within an object "Cuba". 
+
+
+# Histogram (ggplot2)
+# The histogram is a great tool for visualizing frequency tables. There are many
+# possible variations and customizations, but this is a very basic histogram. 
+
+# Example:
+ggplot(data = convict.data.set, aes(x=num.convictions)) + # Defining the data set to use, and assigning a column for the x-axis
+  geom_histogram(breaks = c(0:14)) + # Making the plot into a histogram and defining the # of breaks
+  labs(x = "Number of Convictions", y = "Frequency", title = "Problem Set 1 Histogram", subtitle = "For problem 5, part e.")
+
+
+# Chi Sq Test
+# The chi sq test is a good hypothesis test when you have a sample distribution as well as expected and measured values.
+# You can set the proportions of the expected values by adding the "p =" argument after the measured values. 
+
+# Example: 
+chisq.test(c(1000,2100,900), p = c(0.25,0.5,0.25))
+
+
+# qchisq - Chi Sq Distribution
+# If you need to find the critical value for a chi test, use this. Replaces the use of chi^2 tables. 
+
+# Example:
+qchisq(0.95, df = 1) # For 1 degree of freedom, and alpha = 0.05
+
+
+# pnorm
+# If you need to find the percentage of a distribution that corresponds to a proportion on the curve, you can use pnorm
+# to find it. 
+
+# Example: "What proportion of states would you expect to have more than 65% of their traffic fatalities from drunk driving?"
+pnorm(0.65, mean = 0.569, sd = 0.068, lower.tail = FALSE)  # The lower tail argument specifies that we just want the values 
+                                                           # greater than 65%. 
+
+# Returns: the percentage under the curve corresponding to the input value. 
+
+# qnorm
+# IF you have a percentile and need to find the associated proportion on the distribution curve, you can use qnorm
+
+# Example: "What proportion of deaths due to drunk driving would you expect to be at the 25th percentile of this distribution?"
+qnorm(0.25, mean = 0.569, sd = 0.068)
+
+# Returns: The percentage of the population that died due to drunk driving, aka 0.25 sd's away from the mean. 
+
+
+# tapply
+# Returns values like mean, sd, variance, etc. in a vector as opposed to a data frame like aggregate. 
+
+# Example: 
+sbt.means <- tapply(sbt$temp, sbt$category, mean)
+
+# Output: 
+# cold      hot     warm 
+# 30.96000 40.96000 37.21429 
+

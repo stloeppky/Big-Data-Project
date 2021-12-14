@@ -1,0 +1,506 @@
+# Big Data Project
+
+# Initialization ----------------------------------------------------------
+
+#install.packages("spotifyr")
+#install.packages("ggridges")
+#install.packages("tidyverse")
+#install.packages("knitr")
+#install.packages("ggpubr")
+
+library(spotifyr)
+library(ggridges)
+library(tidyverse)
+library(knitr)
+library(ggpubr)
+
+# Data Wrangling ----------------------------------------------------------
+
+# Setting up access to the Spotify Api
+
+Sys.setenv(SPOTIFY_CLIENT_ID = "a4ba95a97a124757ac4f567562586c4a")
+Sys.setenv(SPOTIFY_CLIENT_SECRET = "aba4119f95024440b3f72949ce918186")
+
+access.token <- get_spotify_access_token()
+
+
+# Wrangling the playlist data
+
+Canada <- get_playlist_audio_features("Spotify", "37i9dQZEVXbMda2apknTqH")
+Japan <- get_playlist_audio_features("Spotify", "37i9dQZEVXbKzoK95AbRy9")
+Belgium <- get_playlist_audio_features("Spotify", "37i9dQZEVXbND4ZYa46PaA")
+Egypt <- get_playlist_audio_features("Spotify", "37i9dQZEVXbMy2EcFg5F9m")
+Brazil <- get_playlist_audio_features("Spotify", "37i9dQZEVXbKzoK95AbRy9")
+Isreal <- get_playlist_audio_features("Spotify", "37i9dQZEVXbJ5J1TrbkAF9")
+
+#getdata <- function(country, playlist_id) {
+#  for (i in 1:length(country)) {
+#    country[i] <- get_playlist_audio_features("Spotify", playlist_id[i])
+#    print(country[i])
+#  }
+#}
+
+#countries <- c("Canada", "Japan", "Belgium", "Egypt", "Brazil", "Israel")
+#playlist_ids <- c("37i9dQZEVXbMda2apknTqH", "37i9dQZEVXbKzoK95AbRy9", 
+#                  "37i9dQZEVXbND4ZYa46PaA", "37i9dQZEVXbMy2EcFg5F9m",
+#                  "37i9dQZEVXbKzoK95AbRy9", "37i9dQZEVXbJ5J1TrbkAF9")
+
+#getdata(countries, playlist_ids)
+
+
+# Separating the data of interest and transforming it to be able to combine the
+# individual sets into one full frame.
+
+c <- Canada %>% 
+  #arrange(-instrumentalness) %>% 
+  select(track.name, instrumentalness, danceability, acousticness)
+
+c <- add_column(c, "Canada")
+names(c)[3] <- "Danceability"
+names(c)[4] <- "Acousticness"
+names(c)[5] <- "Country"
+
+
+j <- Japan %>% 
+  #arrange(-instrumentalness) %>% 
+  select(track.name, instrumentalness, danceability, acousticness)
+
+j <- add_column(j, "Japan")
+names(j)[3] <- "Danceability"
+names(j)[4] <- "Acousticness"
+names(j)[5] <- "Country"
+
+
+bel <- Belgium %>% 
+  #arrange(-instrumentalness) %>% 
+  select(track.name, instrumentalness, danceability, acousticness)
+
+bel <- add_column(bel, "Belgium")
+names(bel)[3] <- "Danceability"
+names(bel)[4] <- "Acousticness"
+names(bel)[5] <- "Country" 
+
+
+e <- Egypt %>% 
+  #arrange(-instrumentalness) %>% 
+  select(track.name, instrumentalness, danceability, acousticness)
+
+e <- add_column(e, "Egypt")
+names(e)[3] <- "Danceability"
+names(e)[4] <- "Acousticness"
+names(e)[5] <- "Country"
+
+
+bra <- Brazil %>% 
+  #arrange(-instrumentalness) %>% 
+  select(track.name, instrumentalness, danceability, acousticness)
+
+bra <- add_column(bra, "Brazil")
+names(bra)[3] <- "Danceability"
+names(bra)[4] <- "Acousticness"
+names(bra)[5] <- "Country"
+
+
+i <- Isreal %>% 
+  #arrange(-instrumentalness) %>% 
+  select(track.name, instrumentalness, danceability, acousticness)
+
+i <- add_column(i, "Israel")
+names(i)[3] <- "Danceability"
+names(i)[4] <- "Acousticness"
+names(i)[5] <- "Country"
+
+
+# Combining all the individual data sets into one full data set
+fulllist <- rbind(c, j, bel, e, bra, i)
+
+
+# Plotting the data -------------------------------------------------------
+
+ggplot(data = fulllist, aes(x = Danceability, y = Acousticness, colour = Country, fill = Country)) +
+  geom_point(shape = 19, size = 2, alpha = 0.8) +
+  xlim(0,1) +
+  ylim(0,1) +
+  labs(title = "Danceability & Acousticness of Songs by Country") +
+  theme_minimal()
+
+dance <- ggplot(data = fulllist, aes(Danceability, Country, fill = Country, colour = Country)) +
+  stat_density_ridges(quantiles = 2, quantile_lines = TRUE, alpha = 0.8, scale = 1.5, rel_min_height = 0.01) +
+  labs(title = "Danceability of the Top 50 songs by Country") +
+  xlim(0,1)
+
+acous <- ggplot(data = fulllist, aes(Acousticness, Country, fill = Country, colour = Country)) +
+  stat_density_ridges(quantiles = 2, quantile_lines = TRUE, alpha = 0.8, scale = 1.5, rel_min_height = 0.01) +
+  labs(title = "Acousticness of the Top 50 songs by Country") +
+  xlim(0,1) 
+
+ggplot(fulllist, aes(x = Danceability, fill = Country, colour = Country)) +
+  geom_density(alpha = 0.3) +
+  labs(title = "Danceability of the Top 50 songs by Country", y = NULL)
+
+sd <- ggplot(fulllist, aes(x = Acousticness, fill = Country, colour = Country)) +
+  geom_density(alpha = 0.3, position = "stack")
+
+# Visualizing two plots next to eachother
+ggarrange(dance, acous)
+
+
+# Khay's stuff ------------------------------------------------------------
+
+library(spotifyr)
+library(ggridges)
+library(tidyverse)
+library(knitr)
+library(fuzzyjoin)
+library(ggstream)
+library(colorspace)
+library(ggtext)
+library(cowplot)
+library(viridis)
+library(hrbrthemes)
+library(dplyr)
+library(forcats)
+
+
+# Accessing different countries' top 50 Playlist data ---------------------
+
+Canada <- get_playlist_audio_features("Spotify", "37i9dQZEVXbMda2apknTqH")
+Canada <- add_column(Canada,"canada")
+names(Canada)[62] <- "Country"
+
+
+Japan <- get_playlist_audio_features("Spotify", "37i9dQZEVXbKzoK95AbRy9")
+Japan <- add_column(Japan,"japan")
+names(Japan)[62] <- "Country"
+
+Belgium <- get_playlist_audio_features("Spotify", "37i9dQZEVXbND4ZYa46PaA")
+Belgium <- add_column(Belgium,"belgium")
+names(Belgium)[62] <- "Country"
+
+Egypt <- get_playlist_audio_features("Spotify", "37i9dQZEVXbMy2EcFg5F9m")
+Egypt <- add_column(Egypt,"egypt")
+names(Egypt)[62] <- "Country"
+
+Brazil <- get_playlist_audio_features("Spotify", "37i9dQZEVXbKzoK95AbRy9")
+Brazil <- add_column(Brazil,"brazil")
+names(Brazil)[62] <- "Country"
+
+Isreal <- get_playlist_audio_features("Spotify", "37i9dQZEVXbJ5J1TrbkAF9")
+Isreal <- add_column(Isreal,"isreal")
+names(Isreal)[62] <- "Country"
+
+ata <- rbind(Japan, Isreal, Canada, Brazil, Belgium)
+
+# Valance -> Objects per country -------------------------------------------------
+
+#Canda
+Ca.V <- data.frame(Canada$valence)
+Ca.V <- add_column(Ca.V,"Canada")
+names(Ca.V)[1] <- "valence"
+names(Ca.V)[2] <- "Country"
+#Japan
+Jp.V <-data.frame(Japan$valence)
+Jp.V <- add_column(Jp.V,"Japan")
+names(Jp.V)[1] <- "valence"
+names(Jp.V)[2] <- "Country"
+
+#Belgium
+Be.V <- data.frame(Belgium$valence)
+Be.V <- add_column(Be.V,"Belgium")
+names(Be.V)[1] <- "valence"
+names(Be.V)[2] <- "Country"
+
+
+#Egypt
+Eg.V <- data.frame(Egypt$valence)
+Eg.V <- add_column(Eg.V,"Egypt")
+names(Eg.V)[1] <- "valence"
+names(Eg.V)[2] <- "Country"
+
+#Brazil
+Br.V <- data.frame(Egypt$valence)
+Br.V <- add_column(Br.V,"Brazil")
+names(Br.V)[1] <- "valence"
+names(Br.V)[2] <- "Country"
+
+#Isreal
+Il.V <- data.frame(Isreal$valence)
+Il.V <- add_column(Il.V,"Isreal")
+names(Il.V)[1] <- "valence"
+names(Il.V)[2] <- "Country"
+
+#combining valences into one object
+Valance.C <-rbind(Ca.V, Br.V, Eg.V, Il.V, Jp.V, Be.V)
+
+# Tempo -> object per country ---------------------------------------------
+
+#Canda
+Ca.T <- data.frame(Canada$tempo)
+Ca.T <- add_column(Ca.T,"Canada")
+names(Ca.T)[1] <- "tempo"
+names(Ca.T)[2] <- "Country"
+#Japan
+Jp.T <-data.frame(Japan$tempo)
+Jp.T <- add_column(Jp.T,"Japan")
+names(Jp.T)[1] <- "tempo"
+names(Jp.T)[2] <- "Country"
+
+#Belgium
+Be.T <- data.frame(Belgium$tempo)
+Be.T <- add_column(Be.T,"Belgium")
+names(Be.T)[1] <- "tempo"
+names(Be.T)[2] <- "Country"
+
+
+#Egypt
+Eg.T <- data.frame(Egypt$tempo)
+Eg.T <- add_column(Eg.T,"Egypt")
+names(Eg.T)[1] <- "tempo"
+names(Eg.T)[2] <- "Country"
+
+#Brazil
+Br.T <- data.frame(Egypt$tempo)
+Br.T <- add_column(Br.T,"Brazil")
+names(Br.T)[1] <- "tempo"
+names(Br.T)[2] <- "Country"
+
+#Isreal
+Il.T <- data.frame(Isreal$tempo)
+Il.T <- add_column(Il.T,"Isreal")
+names(Il.T)[1] <- "tempo"
+names(Il.T)[2] <- "Country"
+
+#combining tempos into one object
+Tempo.C <-rbind(Ca.T, Br.T, Eg.T, Il.T, Jp.T, Be.T)
+Data <- cbind(Tempo.C, Valance.C)
+
+theme_set(theme_minimal(base_family = "Reem Kufi", base_size = 12))
+theme_update(
+  plot.title = element_text(
+    size = 25,
+    face = "bold",
+    hjust = .5,
+    margin = margin(10,0,30,0)
+  ),
+  plot.caption = element_text(
+    size = 9,
+    color = "grey40",
+    hjust = .5,
+    margin = margin(20,0,5,0)
+  ),
+  #setting labels and base grid for graph
+  axis.text.y = element_blank(),
+  axis.title = element_blank(),
+  plot.background = element_rect(fill = "grey88", color = NA),
+  panel.background = element_rect(fill = NA, color = NA),
+  panel.grid = element_blank(),
+  panel.spacing.y = unit(0,"lines"),
+  strip.text.y = element_blank(),
+  legend.text = element_text(size = 9, color = "grey40"),
+  legend.box.margin = margin(t = 30),
+  legend.background = element_rect(
+    color ="grey40",
+    size = .3,
+    fill = "grey95"
+  ),
+  legend.key.height = unit(.25, "lines"),
+  legend.key.width = unit(.25, "lines"),
+  plot.margin = margin(rep(20,40))
+  
+)
+
+
+#defining what colors are used
+col <- c(
+  "#FFB400", lighten("#FFB400", .25, space = "HLS"),
+  "#C20008", lighten("#C20008", .2, space = "HLS"),
+  "#13AFEF", lighten("#13AFEF", .25, space = "HLS"),
+  "#8E038E", lighten("#8E038E", .2, space = "HLS"),
+  "#595A52", lighten("#595A52", .15, space = "HLS")
+)
+
+# Plotting Graphing Valence Trends-------------------------------------------------------------------------
+
+#basic plot
+ggplot(Valance.C, aes(x = valence, y = Country, fill = Country)) +
+  geom_density_ridges() +
+  theme_ridges() + 
+  theme(legend.position = "none")
+
+
+#Color based on valence values
+
+ggplot(Valance.C, aes(x = `valence`, y = `Country`, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+  scale_fill_viridis(name = "valence", option = "C") +
+  labs(title = 'Valence Trends In Top 50 For Different Countries') +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    panel.spacing = unit(0.1, "lines"),
+    strip.text.x = element_text(size = 8)
+  )
+
+# Shape based on valence value
+
+#
+Valance.C %>%
+  mutate(Country = fct_reorder(Country, valence)) %>%
+  ggplot( aes(y=Country, x=valence,  fill=Country)) +
+  geom_density_ridges(alpha=0.6, stat="binline", bins=20) +
+  theme_ridges() +
+  theme(
+    legend.position="none",
+    panel.spacing = unit(0.1, "lines"),
+    strip.text.x = element_text(size = 8)
+  ) +
+  xlab("Valence") +
+  ylab("Countries Top 50")
+
+
+# Plotting graph for temp trends ------------------------------------------
+
+#Color based on valence values
+
+ggplot(Tempo.C, aes(x = `tempo`, y = `Country`, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01) +
+  scale_fill_viridis(name = "Tempo", option = "C") +
+  labs(title = 'Tempo Trends In Top 50 For Different Countries') +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    panel.spacing = unit(0.1, "lines"),
+    strip.text.x = element_text(size = 8)
+  )
+
+
+
+
+
+
+
+
+
+
+
+
+# Sages Stuff -------------------------------------------------------------
+# Here I am just going to look at the variables from Canada for practice 
+
+
+# trying a smoothed histogram in ggplot 
+ggplot(data = can.energy, aes(x = Canada.energy)) + 
+  geom_density()
+
+
+
+
+#histograms for each country 
+hist.canada <- hist(Canada$energy, breaks = 20)
+hist.japan <- hist(Japan$energy, breaks = 20)
+hist.brazil <- hist(Brazil$energy, breaks = 20)
+hist.isreal <- hist(Isreal$energy, breaks = 20)
+hist.egypt <- hist(Egypt$energy, breaks = 20)
+hist.belgium <- hist(Belgium$energy, breaks = 20)
+
+#mean of each country energy 
+mean.canada <- mean(Canada$energy) # 0.60674 
+mean.japan <- mean(Japan$energy) # 0.73404
+mean.brazil <- mean(Brazil$energy) # 0.73404 
+mean.isreal <- mean(Isreal$energy) # 0.61486 
+mean.egypt <- mean(Egypt$energy) # 0.65026 
+mean.belgium <- mean(Belgium$energy) # 0.65072 
+
+#make objects out of all of the energy data points 
+
+e.canada <- Canada$energy
+e.japan <- Japan$energy
+e.brazil <- Brazil$energy
+e.isreal <- Isreal$energy
+e.egypt <- Egypt$energy
+e.belgium <- Belgium$energy
+
+# add column with country 
+
+e.canada <- add_column(e.canada)
+
+
+df.e.all <- data.frame(e.canada, e.japan, e.brazil, e.isreal, e.egypt, e.belgium)
+
+
+
+# creating a vector of means 
+
+means.all <- c(mean.canada, mean.japan, mean.brazil, mean.isreal, mean.egypt, mean.belgium)
+df.means.all <- data.frame(means.all)
+names <- c("Canada", "Japan", "Brazil", "Isreal", "Egypt", "Belgium")
+
+# Creating multiple histograms - Practice 
+
+hist(Canada$energy, col='light blue', ylim=c(0,15), xlim = c(0, 1), main='Multiple Histograms')
+hist(Brazil$energy, col='pink',  add=TRUE)
+hist(Egypt$energy, col = 'red', add=TRUE)
+
+
+# creating a bar plot 
+barplot(means.all, xlab = "Countries", ylab = "Mean Energy of top 50", ylim = c(0, 1), names.arg = names, col = blues9) # how do I make this better? 
+
+
+# rearrange the data to combine it 
+
+# Canada 
+canada.data <- Canada %>%
+  select(track.name, energy, mode)
+
+canada.data <- add_column(canada.data, "Canada")
+names(canada.data)[4] <- "Country"
+
+#Japan
+japan.data <- Japan %>%
+  select(track.name, energy, mode)
+
+japan.data <- add_column(japan.data, "Japan")
+names(japan.data)[4] <- "Country"
+
+# Brazil 
+brazil.data <- Brazil %>%
+  select(track.name, energy, mode)
+
+brazil.data <- add_column(brazil.data, "Brazil")
+names(brazil.data)[4] <- "Country"
+
+# Israel 
+israel.data <- Isreal %>%
+  select(track.name, energy, mode)
+
+israel.data <- add_column(israel.data, "Isreal")
+names(israel.data)[4] <- "Country"
+
+# Egypt 
+egypt.data <- Egypt %>%
+  select(track.name, energy, mode)
+
+egypt.data <- add_column(egypt.data, "Egypt")
+names(egypt.data)[4] <- "Country"
+
+# Belgium 
+belgium.data <- Belgium %>%
+  select(track.name, energy, mode)
+
+belgium.data <- add_column(belgium.data, "Belgium")
+names(belgium.data)[4] <- "Country"
+
+
+# combining all of them 
+
+
+all.countries <- rbind(canada.data, japan.data, brazil.data, israel.data, egypt.data, belgium.data)
+
+ggplot(all.countries, aes(x = energy, fill = Country, colour = Country)) +
+  geom_density(alpha = 0.3)
+
+ggplot(data = all.countries, aes(energy, Country, fill = Country, colour = Country)) +
+  stat_density_ridges(quantiles = 2, quantile_lines = TRUE, alpha = 0.8, scale = 1.5, rel_min_height = 0.01) +
+  xlim(0, 1)
+
+
